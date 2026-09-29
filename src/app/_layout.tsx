@@ -1,18 +1,46 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { AppProvider, useApp } from '@/context/app-context';
+import '@/global.css';
 
 SplashScreen.preventAutoHideAsync();
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+export default function RootLayout() {
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
+    <AppProvider>
+      <StatusBar style="dark" />
+      <RootNavigator />
+    </AppProvider>
+  );
+}
+
+function RootNavigator() {
+  const { hydrated, onboardingComplete, locked } = useApp();
+
+  useEffect(() => {
+    if (hydrated) SplashScreen.hideAsync();
+  }, [hydrated]);
+
+  if (!hydrated) return null;
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Protected guard={!onboardingComplete}>
+        <Stack.Screen name="onboarding" />
+      </Stack.Protected>
+
+      <Stack.Protected guard={onboardingComplete && locked}>
+        <Stack.Screen name="lock" />
+      </Stack.Protected>
+
+      <Stack.Protected guard={onboardingComplete && !locked}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="upload" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="document/[id]" options={{ presentation: 'modal' }} />
+      </Stack.Protected>
+    </Stack>
   );
 }
