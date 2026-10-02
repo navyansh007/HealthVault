@@ -18,7 +18,7 @@ export default function PinSetupScreen() {
     setPinValue(digits);
     setError('');
     if (digits.length === 4) {
-      setStage('confirm');
+      setTimeout(() => setStage('confirm'), 150);
     }
   };
 
