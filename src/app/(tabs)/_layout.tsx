@@ -20,15 +20,19 @@ export default function TabsLayout() {
   return (
     <Tabs style={styles.root}>
       <TabSlot style={styles.slot} />
-      <View style={[styles.tabList, { paddingBottom: Math.max(insets.bottom, Spacing.two) }]}>
-      <TabList style={styles.tabRow}>
+      {/*
+        IMPORTANT: expo-router/ui's Tabs only walks Fragment/TabList children when
+        scanning for routes — any other wrapper (e.g. a styled View) here hides
+        TabList from it and the navigator throws "Couldn't find any screens".
+        So TabList must render directly; all bar chrome lives in its own style.
+      */}
+      <TabList style={[styles.tabList, { paddingBottom: Math.max(insets.bottom, Spacing.two) }]}>
         {TAB_ITEMS.map((item) => (
           <TabTrigger key={item.name} name={item.name} href={item.href} asChild>
             <TabButton icon={item.icon} label={item.label} />
           </TabTrigger>
         ))}
       </TabList>
-      </View>
     </Tabs>
   );
 }
@@ -69,7 +73,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.two,
     paddingTop: Spacing.one,
   },
-  tabRow: { flexDirection: 'row', flex: 1 },
   trigger: { flex: 1 },
   triggerInner: { alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: Spacing.two },
   iconWrap: {
