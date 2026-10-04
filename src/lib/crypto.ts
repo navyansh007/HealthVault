@@ -170,7 +170,11 @@ export function decryptProfile<P>(masterKey: Uint8Array, encrypted: string): P {
 }
 
 export function toBase64(bytes: Uint8Array): string {
-  return btoa(String.fromCharCode(...bytes));
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  }
+  return btoa(binary);
 }
 
 export function fromBase64(value: string): Uint8Array {
