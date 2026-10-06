@@ -16,12 +16,21 @@ function showPermissionAlert(what: string) {
 }
 
 export default function UploadSourceScreen() {
-  const { setUploadDraft } = useApp();
+  const { setUploadDraft, setAutoLockSuspended } = useApp();
+
+  const withPicker = async <T,>(fn: () => Promise<T>) => {
+    setAutoLockSuspended(true);
+    try {
+      return await fn();
+    } finally {
+      setAutoLockSuspended(false);
+    }
+  };
 
   const handleCamera = async () => {
-    const perm = await ImagePicker.requestCameraPermissionsAsync();
+    const perm = await withPicker(() => ImagePicker.requestCameraPermissionsAsync());
     if (!perm.granted) return showPermissionAlert('Camera');
-    const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.7 });
+    const result = await withPicker(() => ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.7 }));
     if (result.canceled || !result.assets?.[0]) return;
     const asset = result.assets[0];
     setUploadDraft({
@@ -34,9 +43,9 @@ export default function UploadSourceScreen() {
   };
 
   const handleGallery = async () => {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const perm = await withPicker(() => ImagePicker.requestMediaLibraryPermissionsAsync());
     if (!perm.granted) return showPermissionAlert('Photo library');
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
+    const result = await withPicker(() => ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 }));
     if (result.canceled || !result.assets?.[0]) return;
     const asset = result.assets[0];
     setUploadDraft({
@@ -49,7 +58,7 @@ export default function UploadSourceScreen() {
   };
 
   const handlePdf = async () => {
-    const result = await DocumentPicker.getDocumentAsync({ type: 'application/pdf' });
+    const result = await withPicker(() => DocumentPicker.getDocumentAsync({ type: 'application/pdf' }));
     if (result.canceled || !result.assets?.[0]) return;
     const asset = result.assets[0];
     setUploadDraft({ uri: asset.uri, fileKind: 'pdf', mimeType: asset.mimeType ?? 'application/pdf', fileName: asset.name });

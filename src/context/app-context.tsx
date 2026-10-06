@@ -74,6 +74,8 @@ interface AppContextValue {
   completeOnboarding: () => void;
   unlock: (pin: string) => Promise<boolean>;
   lockNow: () => void;
+  /** Suspend background auto-lock while a system picker/camera is open. */
+  setAutoLockSuspended: (suspended: boolean) => void;
 
   refreshVault: () => Promise<void>;
   addDocument: (draft: UploadDraft, metadata: DocumentMetadata) => Promise<VaultDocument>;
@@ -128,6 +130,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const pendingWrappedKey = useRef<string | null>(null);
   const decryptedUris = useRef(new Map<string, string>());
+  const autoLockSuspended = useRef(false);
   // Onboarding steps run across several awaits; read the latest state, not a stale closure.
   const persistedRef = useRef(persisted);
   useEffect(() => {
@@ -193,7 +196,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!hydrated || !persisted.pinHash || !persisted.onboardingComplete) return;
     const sub = AppState.addEventListener('change', (next) => {
-      if (next === 'background') lock();
+      // Camera / picker activities background the app on Android; don't lock mid-upload.
+      if (next === 'background' && !autoLockSuspended.current) lock();
     });
     return () => sub.remove();
   }, [hydrated, persisted.pinHash, persisted.onboardingComplete, lock]);
@@ -409,6 +413,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       },
       unlock,
       lockNow: lock,
+      setAutoLockSuspended: (suspended) => {
+        autoLockSuspended.current = suspended;
+      },
 
       refreshVault,
       addDocument,
