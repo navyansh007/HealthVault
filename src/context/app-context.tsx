@@ -212,7 +212,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         documentsApi.list(),
       ]);
       if (encryptedProfile) setProfile(decryptProfile<PatientProfile>(masterKey, encryptedProfile));
-      const decrypted = remote.map((r) => decryptRemoteDocument(masterKey, r));
+      const decrypted: VaultDocument[] = [];
+      for (const r of remote) {
+        try {
+          decrypted.push(decryptRemoteDocument(masterKey, r));
+        } catch (error) {
+          console.warn('[vault] skipping undecryptable document', r.id, error);
+        }
+      }
       setDocuments(decrypted);
     } catch (error) {
       setSyncError(errorMessage(error));
