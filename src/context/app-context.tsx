@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { AppState } from 'react-native';
 
 import {
+  ApiRequestError,
   authApi,
   documentsApi,
   fetchFromIpfs,
@@ -302,11 +303,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const confirmRecoveryKeySaved = useCallback(async () => {
     if (!masterKey || !pendingWrappedKey.current) throw new Error('No recovery key to confirm');
-    await vaultApi.createKey(pendingWrappedKey.current);
+    try {
+      await vaultApi.createKey(pendingWrappedKey.current);
+    } catch (error) {
+      // Another device created the vault first, so restore that vault instead.
+      if (error instanceof ApiRequestError && error.code === 'KEY_EXISTS' && session) {
+        await clearMasterKey(session.userId);
+        setMasterKey(null);
+        setPendingRecoveryKey(null);
+        return stepForSession(session.userId);
+      }
+      throw error;
+    }
     pendingWrappedKey.current = null;
     setPendingRecoveryKey(null);
     return stepAfterKey(masterKey);
-  }, [masterKey, stepAfterKey]);
+  }, [masterKey, session, stepAfterKey, stepForSession]);
 
   const restoreWithRecoveryKey = useCallback(
     async (recoveryKey: string) => {
