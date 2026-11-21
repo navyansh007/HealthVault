@@ -13,9 +13,9 @@ Phone ──encrypt (XChaCha20-Poly1305)──▶ /api/documents ──pin──
 
 ## Demo
 
-https://github.com/navyansh007/HealthVault/raw/main/docs/HealthVault_Demo.mp4
-
-[Watch the demo video](docs/HealthVault_Demo.mp4)
+<p align="center">
+  <img src="docs/demo.gif" alt="HealthVault demo: creating an account, setting a vault PIN, adding and searching documents, and unlocking the vault" width="320">
+</p>
 
 ## What you need
 
