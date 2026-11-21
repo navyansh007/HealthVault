@@ -11,6 +11,12 @@ Phone ──encrypt (XChaCha20-Poly1305)──▶ /api/documents ──pin──
   └── recovery key (kept by the user) unlocks the vault on a new device
 ```
 
+## Demo
+
+https://github.com/navyansh007/HealthVault/raw/main/docs/HealthVault_Demo.mp4
+
+[Watch the demo video](docs/HealthVault_Demo.mp4)
+
 ## What you need
 
 - Node.js 22 or later
